@@ -12,9 +12,23 @@ var simpleBox = (function() {
 
 	};
 
+    window.onkeydown = function(event) {
+        var key = event.keyCode ? event.keyCode : event.which;
+
+        if (key === 37) {        //left arrow
+            _prevImageEvent();
+        } else if (key === 39) { //right arrow
+            _nextImageEvent();
+        } else if (key === 27) { //esc
+            _closeGallery();
+        }
+    };
+
 
 	var simpleBox = {
-		init : function() {
+		init : function({offset} = {}) {
+			_offset = offset || 50;
+
 			var all_galleries = document.querySelectorAll("[simpleBox='gallery']");
 			var all_galleries_amnt = all_galleries.length;
 
@@ -28,43 +42,39 @@ var simpleBox = (function() {
 				_galleries[gid].push(all_galleries[i].children[0].src);
 
 				all_galleries[i].id = 'img_id_' + (_galleries[gid].length-1).toString();
-
 			}
-
-			console.log(_galleries);
-
-
-
 		}
-
-
 	};
 
     var _showGallery = function(event) {
-		var gid = event.path[1].getAttribute('gid');	//gallery id
-		var aid = event.path[1].id.substring(7);		//array id
-		var src = _galleries[gid][aid];
-
-		_displayFrame(src, gid, aid);
-
-
-		document.addEventListener('mousemove', mouseMoveEvent);
-		document.addEventListener('click', clickEvent);
-		fade_out_timeout = setTimeout(hideElements, 2500);
-
-		setMainArea();
-
-		//image stuff
-		var image = document.getElementById(IDs.IMAGE);
-		image.onload = function() {
-			changeImageMode(image);
-			setNavAreas(image);
-		};
+        _current_gid = event.path[1].getAttribute('gid');	//gallery id
+        _current_aid = event.path[1].id.substring(7);		//array id
+		_openGallery();
 	};
 
+    var _openGallery = function() {
+        _currently_open = true;
+
+        var src = _galleries[_current_gid][_current_aid];
+        _displayFrame(src, _current_gid, _current_aid);
+
+        fade_out_timeout = setTimeout(_hideElements, 2500);
+
+        //TODO display loading gif
+
+        //image stuff
+        var image = document.getElementById(IDs.IMAGE);
+        image.onload = function() {
+            _changeImageMode(image);
+            _setNavAreas(image);
+        };
+    };
+
     var _closeGallery = function() {
-        document.removeEventListener('mousemove', mouseMoveEvent);
-        document.removeEventListener('click', clickEvent);
+        _currently_open = false;
+
+        document.removeEventListener('mousemove', _mouseMoveEvent);
+        document.removeEventListener('click', _clickEvent);
 
         clearTimeout(fade_out_timeout);
 
@@ -84,26 +94,171 @@ var simpleBox = (function() {
 	};
 
 	var _createBox = function (nav_prev, nav_next) {
+        document.addEventListener('mousemove', _mouseMoveEvent);
+        document.addEventListener('click', _clickEvent);
+
 		var simplebox_background    = createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
 		var simplebox_footer_shadow = createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, '', simplebox_background);
-		var simplebox_footer        = createElement('div', IDS.FOOTER, IDS.FOOTER, '', simplebox_background);
+		var simplebox_footer        = createElement('div', IDs.FOOTER, IDs.FOOTER, '', simplebox_background);
 		var simplebox_image         = createElement('img', IDs.IMAGE, '', '', simplebox_background);
 
-		if (nav_prev)
-			var simplebox_prev      = createElement('div', IDs.MAINAREA_PREV, IDs.MAINAREA_PREV, '', simplebox_background);
-		if (nav_next)
-			var simplebox_next      = createElement('div', IDs.MAINAREA_NEXT, IDs.MAINAREA_NEXT, '', simplebox_background);
+
+		if (nav_prev) {
+            var simplebox_prev = createElement('div', IDs.MAINAREA_PREV, IDs.MAINAREA_PREV, '', simplebox_background);
+            simplebox_prev.addEventListener('click', _prevImageEvent);
+        }
+		if (nav_next) {
+            var simplebox_next = createElement('div', IDs.MAINAREA_NEXT, IDs.MAINAREA_NEXT, '', simplebox_background);
+            simplebox_next.addEventListener('click', _nextImageEvent)
+        }
 	};
+
+    var _changeImageMode = function(image) {
+        if (window.innerWidth / window.innerHeight <= image.width / image.height) {
+            image.className = 'simplebox_image_landscape';
+
+            image.style['width']       = (window.innerWidth - 2 * _offset) + "px";
+            image.style['margin-left'] = _offset + "px";
+            image.style['margin-top']  = (window.innerHeight - image.height) / 2 + "px";
+        } else {
+            image.className = 'simplebox_image_portrait';
+
+            image.style['height']      = (window.innerHeight - 2 * _offset) + "px";
+            image.style['margin-top']  = _offset + "px";
+            image.style['margin-left'] = (window.innerWidth - image.width) / 2 + "px";
+        }
+    };
+
+    var _setNavAreas = function(image) {
+        var width  = image.width;
+        var height = image.height;
+
+        var c_width    = window.innerWidth;
+
+        var this_image = document.getElementById(IDs.IMAGE);
+
+        var prev_area = document.getElementById(IDs.MAINAREA_PREV);
+        if (prev_area != undefined) {
+            prev_area.style.left   = (c_width - width) / 2 + "px";
+            prev_area.style.top    = this_image.style['margin-top'];
+            prev_area.style.width  = "200px";
+            prev_area.style.height = height + "px";
+		}
+
+        var next_area = document.getElementById(IDs.MAINAREA_NEXT);
+        if (next_area != undefined) {
+            next_area.style.right  = (c_width - width) / 2 + "px";
+            next_area.style.top    = this_image.style['margin-top'];
+            next_area.style.width  = (width - 200) + "px";
+            next_area.style.height = height + "px";
+		}
+
+
+    };
+
+    var _displayElements = function() {
+        _fadeIn(IDs.FOOTERSHADOW, 200);
+        _fadeIn(IDs.FOOTER, 200);
+        _fadeIn(IDs.MAINAREA_NEXT, 200);
+        _fadeIn(IDs.MAINAREA_NEXT, 200);
+    };
+
+    var _hideElements = function() {
+        _fadeOut(IDs.FOOTERSHADOW, 400);
+        _fadeOut(IDs.FOOTER, 400);
+        _fadeOut(IDs.MAINAREA_NEXT, 400);
+        _fadeOut(IDs.MAINAREA_NEXT, 400);
+    };
+
+    var _fadeOut = function(element_id, time_in_ms) {
+        var element = document.getElementById(element_id);
+
+        var op = 1;
+
+        var timestep = 25;
+        var step_per_timestep = 1.0 / (time_in_ms / timestep);
+
+        var timer = setInterval(function () {
+            if (op <= step_per_timestep){
+                clearInterval(timer);
+                op = 0.0;
+                element.style.display = 'none';
+            }
+            element.style.opacity = op;
+            op -= step_per_timestep;
+        }, timestep);
+    };
+
+    var _fadeIn = function(element_id, time_in_ms, start_value, end_value) {
+        var element = document.getElementById(element_id);
+        element.style.display = 'block';
+
+        if (element.style.opacity === "1.0")
+            return;
+
+        console.log("fade in: " + element.style.opacity);
+
+        var op = 0.0;
+
+        var timestep = 25;
+        var step_per_timestep = 1.0 / (time_in_ms / timestep);
+
+        var timer = setInterval(function () {
+            if (op >= 1.0 - step_per_timestep){
+                clearInterval(timer);
+                op = 1.0;
+            }
+            element.style.opacity = op;
+            op += step_per_timestep;
+        }, timestep);
+    };
+
+
 
 
 	//Eventhandlers
     var _clickEvent = function(event) {
         if (event.target.id === IDs.BACKGROUND)
-            closeGallery();
+            _closeGallery();
     };
+
+    var _mouseMoveEvent = function() {
+        _displayElements();
+        clearTimeout(fade_out_timeout);
+        fade_out_timeout = setTimeout(_hideElements, 2500);
+    };
+
+    var _prevImageEvent = function() {
+        if (!_currently_open)
+            return;
+
+        if (_current_aid <= 0)
+            return;
+
+        _closeGallery();
+        _current_aid--;
+        _openGallery();
+    };
+
+    var _nextImageEvent = function() {
+        if (!_currently_open)
+            return;
+
+        if (_current_aid >= _galleries[_current_gid].length-1)
+            return;
+
+    	_closeGallery();
+    	_current_aid++;
+    	_openGallery();
+	};
 
 
 	var _galleries = {};
+    var _offset;
+
+    var _current_gid;
+    var _current_aid;
+    var _currently_open;
 
 
 	return simpleBox;
@@ -116,44 +271,9 @@ var simpleBox = (function() {
 
 
 
-var setMainArea = function() {
-	var offset = 50;
-	//TODO ohne mainarea, einfach windowsize - 2*offset
-};
 
-var changeImageMode = function(image) {
-	var image_area = document.getElementById('simplebox_mainarea');
 
-	if (image_area.clientWidth / image_area.clientHeight <= image.width / image.height) {
-		image.className = 'simplebox_image_landscape';
-		image.style['margin-top'] = (image_area.clientHeight - image.height) / 2 + "px";
-	} else {
-		image.className = 'simplebox_image_portrait';
-		image.style['margin-left'] = (image_area.clientWidth - image.width) / 2 + "px";
-	}
-};
 
-var setNavAreas = function(image) {
-		var width  = image.width;
-		var height = image.height;
-
-		var image_area = document.getElementById('simplebox_mainarea');
-		var c_width    = image_area.clientWidth;
-		var c_height   = image_area.clientHeight;
-
-		var prev_area = document.getElementById('simplebox_mainarea_prev');
-		var next_area = document.getElementById('simplebox_mainarea_next');
-
-		var main_top  = document.getElementById('simplebox_mainarea').style.top;
-
-		console.log(height);
-		console.log(c_height);
-
-		prev_area.style.left   = (c_width - width) / 2 + "px";
-		prev_area.style.top    = (c_height - height) / 2 + main_top + "px";
-		prev_area.style.width  = "250px";
-		prev_area.style.height = height + "px";
-};
 
 function createElement (_type, _id, _class, _style, _append) {
     var newElement = document.createElement(_type);
@@ -174,54 +294,6 @@ function removeElement (_id) {
 
 var fade_out_timeout;
 
-var mouseMoveEvent = function() {
-	displayElements();
-	clearTimeout(fade_out_timeout);
-	fade_out_timeout = setTimeout(hideElements, 2500);
-};
 
-var displayElements = function() {
-	fadeIn('simplebox_footer_shadow', 200);
-	fadeIn('simplebox_footer', 200);
-};
 
-var hideElements = function() {
-	fadeOut('simplebox_footer_shadow', 400);
-	fadeOut('simplebox_footer', 400);
-};
 
-var fadeOut = function(element_id, time_in_ms) {
-	var element = document.getElementById(element_id);
-
-	var op = 1;
-
-	var timestep = 25;
-	var step_per_timestep = 1.0 / (time_in_ms / timestep);
-
-    var timer = setInterval(function () {
-        if (op <= step_per_timestep){
-            clearInterval(timer);
-            element.style.display = 'none';
-        }
-        element.style.opacity = op;
-        op -= step_per_timestep;
-    }, timestep);
-};
-
-var fadeIn = function(element_id, time_in_ms) {
-	var element = document.getElementById(element_id);
-	element.style.display = 'block';
-
-	var op = 1;
-
-	var timestep = 25;
-	var step_per_timestep = 1.0 / (time_in_ms / timestep);
-
-    var timer = setInterval(function () {
-        if (op >= 1.0 - step_per_timestep){
-            clearInterval(timer);
-        }
-        element.style.opacity = op;
-        op += step_per_timestep;
-    }, timestep);
-};
