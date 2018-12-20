@@ -44,6 +44,11 @@ var simpleBox = (function() {
 				if (_galleries[gid] === undefined)
 					_galleries[gid] = [];
 				_galleries[gid].push(all_galleries[i].children[0].src);
+				
+				if (_descrition[gid] === undefined)
+					_descrition[gid] = [];
+				description = all_galleries[i].getAttribute('description') || all_galleries[i].title || '';				
+				_descrition[gid].push[description];
 
 				all_galleries[i].id = 'img_id_' + (_galleries[gid].length-1).toString();
 			}
@@ -81,6 +86,10 @@ var simpleBox = (function() {
 			//enable visibility of image
 			document.getElementById(IDs.IMAGE_LOADING).remove();
 			image.style.opacity = "1.0";
+			
+			//set description
+			console.log(_descrition);
+			document.getElementById(IDs.FOOTER).innerHTML = _descrition[_current_gid][_current_aid];
 		};
 	};
 
@@ -283,6 +292,7 @@ var simpleBox = (function() {
 
 
 	var _galleries = {};
+	var _descrition = {};
 	var _offset;
 
 	var _current_gid;

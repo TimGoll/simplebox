@@ -4,8 +4,8 @@ Simplebox, a very lightweight fancy box alternative. This is still very much WIP
 ## Setup
 First of all you have to include all necessary files. It should look like this.
 ```html
-<script type="text/javascript" src="../libs/simpleBox.js"></script>
-<link rel="stylesheet" href="../libs/simpleBox.css">
+<script type="text/javascript" src="libs/simpleBox.js"></script>
+<link rel="stylesheet" href="libs/simpleBox.css">
 ```
 
 Now only one step is missing. You have to initialize the library.
@@ -34,3 +34,6 @@ The argument `simpleBox="gallery"` has to be set in order for the library to det
 - Load a description from a title or a designated description tag
 - set extra image tag in order to load a high res image if the icon is low res
 - add `simpleBox="textarea"`, `simpleBox="iframe"`, `simpleBox="popup"`
+- prev and next arrow images
+- close if clicked on description if lower element is background
+- close view button
