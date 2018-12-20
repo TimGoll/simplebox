@@ -8,7 +8,7 @@ First of all you have to include all necessary files. It should look like this.
 <link rel="stylesheet" href="../libs/simpleBox.css">
 ```
 
-Now only one step is missing. You h ave to initialize the library.
+Now only one step is missing. You have to initialize the library.
 ```javascript
 window.onload = function() {
 	simpleBox.init({offset: 50});
@@ -33,3 +33,4 @@ The argument `simpleBox="gallery"` has to be set in order for the library to det
 ## TODO
 - Load a description from a title or a designated description tag
 - set extra image tag in order to load a high res image if the icon is low res
+- add `simpleBox="textarea"`, `simpleBox="iframe"`, `simpleBox="popup"`
