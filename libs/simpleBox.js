@@ -98,17 +98,17 @@ var simpleBox = (function() {
         document.addEventListener('click', _clickEvent);
 
 		var simplebox_background    = createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
-		var simplebox_footer_shadow = createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, '', simplebox_background);
-		var simplebox_footer        = createElement('div', IDs.FOOTER, IDs.FOOTER, '', simplebox_background);
+		var simplebox_footer_shadow = createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, 'display: block;', simplebox_background);
+		var simplebox_footer        = createElement('div', IDs.FOOTER, IDs.FOOTER, 'display: block;', simplebox_background);
 		var simplebox_image         = createElement('img', IDs.IMAGE, '', '', simplebox_background);
 
 
 		if (nav_prev) {
-            var simplebox_prev = createElement('div', IDs.MAINAREA_PREV, IDs.MAINAREA_PREV, '', simplebox_background);
+            var simplebox_prev = createElement('div', IDs.MAINAREA_PREV, IDs.MAINAREA_PREV, 'display: block;', simplebox_background);
             simplebox_prev.addEventListener('click', _prevImageEvent);
         }
 		if (nav_next) {
-            var simplebox_next = createElement('div', IDs.MAINAREA_NEXT, IDs.MAINAREA_NEXT, '', simplebox_background);
+            var simplebox_next = createElement('div', IDs.MAINAREA_NEXT, IDs.MAINAREA_NEXT, 'display: block;', simplebox_background);
             simplebox_next.addEventListener('click', _nextImageEvent)
         }
 	};
@@ -160,21 +160,23 @@ var simpleBox = (function() {
         _fadeIn(IDs.FOOTERSHADOW, 200);
         _fadeIn(IDs.FOOTER, 200);
         _fadeIn(IDs.MAINAREA_NEXT, 200);
-        _fadeIn(IDs.MAINAREA_NEXT, 200);
+        _fadeIn(IDs.MAINAREA_PREV, 200);
     };
 
     var _hideElements = function() {
         _fadeOut(IDs.FOOTERSHADOW, 400);
         _fadeOut(IDs.FOOTER, 400);
         _fadeOut(IDs.MAINAREA_NEXT, 400);
-        _fadeOut(IDs.MAINAREA_NEXT, 400);
+        _fadeOut(IDs.MAINAREA_PREV, 400);
     };
 
     var _fadeOut = function(element_id, time_in_ms) {
         var element = document.getElementById(element_id);
+        
+        if (element == null || element.style.display == 'none')
+        	return;
 
         var op = 1;
-
         var timestep = 25;
         var step_per_timestep = 1.0 / (time_in_ms / timestep);
 
@@ -191,10 +193,15 @@ var simpleBox = (function() {
 
     var _fadeIn = function(element_id, time_in_ms, start_value, end_value) {
         var element = document.getElementById(element_id);
+        
+        if (element == null || element.style.display == 'block')
+        	return;
+        
         element.style.display = 'block';
 
-        if (element.style.opacity === "1.0")
-            return;
+        //if (element.style.opacity === "1.0")
+        //    return;
+        
 
         console.log("fade in: " + element.style.opacity);
 
@@ -223,6 +230,7 @@ var simpleBox = (function() {
     };
 
     var _mouseMoveEvent = function() {
+    	console.log("moved mouse");
         _displayElements();
         clearTimeout(fade_out_timeout);
         fade_out_timeout = setTimeout(_hideElements, 2500);
