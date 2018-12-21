@@ -45,7 +45,8 @@ var simpleBox = (function() {
 				//set image path
 				if (_galleries[gid] === undefined)
 					_galleries[gid] = [];
-				_galleries[gid].push(all_galleries[i].children[0].src);
+				src = all_galleries[i].getAttribute('src') || all_galleries[i].children[0].src;
+				_galleries[gid].push(src);
 				
 				//set description text
 				if (_descrition[gid] === undefined)
