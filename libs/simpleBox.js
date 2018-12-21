@@ -12,6 +12,7 @@ var simpleBox = (function() {
 		IMAGE_LOADING	   : "simplebox_image_loading",
 		FOOTERSHADOW	   : "simplebox_footer_shadow",
 		FOOTER			   : "simplebox_footer",
+		FOOTER_DESCRIPTION : "simplebox_footer_description",
 		SHADOW			   : "simplebox_shadow"
 
 	};
@@ -41,14 +42,16 @@ var simpleBox = (function() {
 
 				var gid = all_galleries[i].getAttribute('gid');
 
+				//set image path
 				if (_galleries[gid] === undefined)
 					_galleries[gid] = [];
 				_galleries[gid].push(all_galleries[i].children[0].src);
 				
+				//set description text
 				if (_descrition[gid] === undefined)
 					_descrition[gid] = [];
-				description = all_galleries[i].getAttribute('description') || all_galleries[i].title || '';				
-				_descrition[gid].push[description];
+				description = all_galleries[i].getAttribute('description') || all_galleries[i].title || '';
+				_descrition[gid].push(description);
 
 				all_galleries[i].id = 'img_id_' + (_galleries[gid].length-1).toString();
 			}
@@ -89,7 +92,7 @@ var simpleBox = (function() {
 			
 			//set description
 			console.log(_descrition);
-			document.getElementById(IDs.FOOTER).innerHTML = _descrition[_current_gid][_current_aid];
+			document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _descrition[_current_gid][_current_aid];
 		};
 	};
 
@@ -128,6 +131,7 @@ var simpleBox = (function() {
 		var simplebox_background	= createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
 		var simplebox_footer_shadow = createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, overlay_display, simplebox_background);
 		var simplebox_footer		= createElement('div', IDs.FOOTER, IDs.FOOTER, overlay_display, simplebox_background);
+		var simplebox_footer_desc   = createElement('div', IDs.FOOTER_DESCRIPTION, IDs.FOOTER_DESCRIPTION, '', simplebox_footer);
 		var simplebox_image_wrapper = createElement('div', IDs.IMAGE_WRAP, IDs.IMAGE_WRAP, '', simplebox_background);
 			simplebox_image_wrapper.appendChild(_loading_image);
 			_loading_image.class = IDs.IMAGE_LOADING;

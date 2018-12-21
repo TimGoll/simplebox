@@ -104,6 +104,15 @@ img.simplebox_image_portrait {
     height: 100px;
     bottom: 0;
     left: 40px;
-    border-top: 1px solid rgb(255,255,255);
+    border-top: 1px solid rgba(255,255,255,.5);
     position: fixed;
+	z-index: 4;
+}
+
+.simplebox_footer_description {
+	padding: 15px;
+	width: calc(100% - 30px);
+	height: calc(100% - 30px);
+	font-family: sans-serif;
+	color: rgba(255,255,255,.5);
 }
