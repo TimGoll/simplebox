@@ -4,8 +4,10 @@ var simpleBox = (function() {
 		MAINAREA		   : "simplebox_mainarea",
 		MAINAREA_PREV	   : "simplebox_mainarea_prev",
 		MAINAREA_PREV_WRAP : "simplebox_mainarea_prev_wrapper",
+		MAINAREA_PREV_IMG  : "simplebox_arrow_prev",
 		MAINAREA_NEXT	   : "simplebox_mainarea_next",
 		MAINAREA_NEXT_WRAP : "simplebox_mainarea_next_wrapper",
+		MAINAREA_NEXT_IMG  : "simplebox_arrow_next",
 		BACKGROUND		   : "simplebox_background",
 		IMAGE			   : "simplebox_image",
 		IMAGE_WRAP		   : "simplebox_image_wrapper",
@@ -27,6 +29,11 @@ var simpleBox = (function() {
 		} else if (key === 27) { //esc
 			_closeGallery();
 		}
+	};
+	
+	window.onresize = function(event) {
+		_changeImageMode(document.getElementById(IDs.IMAGE));
+		_setNavAreas(document.getElementById(IDs.IMAGE));
 	};
 
 
@@ -60,6 +67,17 @@ var simpleBox = (function() {
 			// preload loading icon
 			_loading_image = new Image();
 			_loading_image.src = '../media/loading.png';
+			
+			//preload nav elements
+			_nav_prev_image = new Image();
+			_nav_prev_image.src       = '../media/arrow_prev.png';
+			_nav_prev_image.className = IDs.MAINAREA_PREV_IMG;
+			_nav_prev_image.id        = IDs.MAINAREA_PREV_IMG;
+			
+			_nav_next_image = new Image();
+			_nav_next_image.src       = '../media/arrow_next.png';
+			_nav_next_image.className = IDs.MAINAREA_NEXT_IMG;
+			_nav_next_image.id        = IDs.MAINAREA_NEXT_IMG;
 		}
 	};
 
@@ -79,7 +97,7 @@ var simpleBox = (function() {
 		_displayFrame(src, _current_gid, _current_aid, overlayShownOnOpen);
 
 		if (overlayShownOnOpen)
-			fade_out_timeout = setTimeout(_hideElements, 2500);
+			_fade_out_timeout = setTimeout(_hideElements, 2500);
 
 		//image stuff
 		var image = document.getElementById(IDs.IMAGE);
@@ -92,8 +110,11 @@ var simpleBox = (function() {
 			image.style.opacity = "1.0";
 			
 			//set description
-			console.log(_descrition);
 			document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _descrition[_current_gid][_current_aid];
+			
+			//enable nav elements
+			_nav_prev_image.style = "opacity: 1.0;";
+			_nav_next_image.style = "opacity: 1.0;";
 		};
 	};
 
@@ -103,9 +124,9 @@ var simpleBox = (function() {
 		document.removeEventListener('mousemove', _mouseMoveEvent);
 		document.removeEventListener('click', _clickEvent);
 
-		clearTimeout(fade_out_timeout);
+		clearTimeout(_fade_out_timeout);
 
-		removeElement(IDs.BACKGROUND);
+		document.getElementById(IDs.BACKGROUND).remove();
 		document.body.style.overflow = '';
 	};
 
@@ -129,26 +150,30 @@ var simpleBox = (function() {
 		else
 			overlay_display = 'display: none;';
 
-		var simplebox_background	= createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
-		var simplebox_footer_shadow = createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, overlay_display, simplebox_background);
-		var simplebox_footer		= createElement('div', IDs.FOOTER, IDs.FOOTER, overlay_display, simplebox_background);
-		var simplebox_footer_desc   = createElement('div', IDs.FOOTER_DESCRIPTION, IDs.FOOTER_DESCRIPTION, '', simplebox_footer);
-		var simplebox_image_wrapper = createElement('div', IDs.IMAGE_WRAP, IDs.IMAGE_WRAP, '', simplebox_background);
+		var simplebox_background	= _createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
+		var simplebox_footer_shadow = _createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, overlay_display, simplebox_background);
+		var simplebox_footer		= _createElement('div', IDs.FOOTER, IDs.FOOTER, overlay_display, simplebox_background);
+		var simplebox_footer_desc   = _createElement('div', IDs.FOOTER_DESCRIPTION, IDs.FOOTER_DESCRIPTION, '', simplebox_footer);
+		var simplebox_image_wrapper = _createElement('div', IDs.IMAGE_WRAP, IDs.IMAGE_WRAP, '', simplebox_background);
 			simplebox_image_wrapper.appendChild(_loading_image);
 			_loading_image.class = IDs.IMAGE_LOADING;
 			_loading_image.id	 = IDs.IMAGE_LOADING;
 			_loading_image.style = "margin-left: 46px; margin-top:46px; opacity: .5;"
-		var simplebox_image		 = createElement('img', IDs.IMAGE, '', 'opacity: 0.0;', simplebox_image_wrapper);
+		var simplebox_image		 = _createElement('img', IDs.IMAGE, '', 'opacity: 0.0;', simplebox_image_wrapper);
 
 		if (nav_prev) {
-			var simplebox_prev_wrapper = createElement('div', IDs.MAINAREA_PREV_WRAP, IDs.MAINAREA_PREV_WRAP, overlay_display, simplebox_background);
-			var simplebox_prev		   = createElement('div', IDs.MAINAREA_PREV, IDs.MAINAREA_PREV, '', simplebox_prev_wrapper);
+			var simplebox_prev_wrapper = _createElement('div', IDs.MAINAREA_PREV_WRAP, IDs.MAINAREA_PREV_WRAP, overlay_display, simplebox_background);
+			var simplebox_prev		   = _createElement('div', IDs.MAINAREA_PREV, IDs.MAINAREA_PREV, '', simplebox_prev_wrapper);
 			simplebox_prev.addEventListener('click', _prevImageEvent);
+			_nav_prev_image.style = "opacity: 0.0;";
+			simplebox_prev.appendChild(_nav_prev_image);
 		}
 		if (nav_next) {
-			var simplebox_next_wrapper = createElement('div', IDs.MAINAREA_NEXT_WRAP, IDs.MAINAREA_NEXT_WRAP, overlay_display, simplebox_background);
-			var simplebox_next         = createElement('div', IDs.MAINAREA_NEXT, IDs.MAINAREA_NEXT, '', simplebox_next_wrapper);
+			var simplebox_next_wrapper = _createElement('div', IDs.MAINAREA_NEXT_WRAP, IDs.MAINAREA_NEXT_WRAP, overlay_display, simplebox_background);
+			var simplebox_next         = _createElement('div', IDs.MAINAREA_NEXT, IDs.MAINAREA_NEXT, '', simplebox_next_wrapper);
 			simplebox_next.addEventListener('click', _nextImageEvent);
+			_nav_next_image.style = "opacity: 0.0;";
+			simplebox_next.appendChild(_nav_next_image);
 		}
 	};
 
@@ -160,6 +185,7 @@ var simpleBox = (function() {
 			image.className      = 'simplebox_image_landscape';
 
 			image_wrap.style['width']	   = (window.innerWidth - 2 * _offset) + "px";
+			image_wrap.style['height']	   = ((window.innerWidth - 2 * _offset) / image.width * image.height) + "px";
 			image_wrap.style['margin-left'] = _offset + "px";
 			image_wrap.style['margin-top']  = (window.innerHeight - image.height) / 2 + "px";
 		} else {
@@ -167,6 +193,7 @@ var simpleBox = (function() {
 			image.className      = 'simplebox_image_portrait';
 
 			image_wrap.style['height']	  = (window.innerHeight - 2 * _offset) + "px";
+			image_wrap.style['width']	   = ((window.innerHeight - 2 * _offset) / image.height * image.width) + "px";
 			image_wrap.style['margin-top']  = _offset + "px";
 			image_wrap.style['margin-left'] = (window.innerWidth - image.width) / 2 + "px";
 		}
@@ -267,8 +294,8 @@ var simpleBox = (function() {
 
 	var _mouseMoveEvent = function() {
 		_displayElements();
-		clearTimeout(fade_out_timeout);
-		fade_out_timeout = setTimeout(_hideElements, 2500);
+		clearTimeout(_fade_out_timeout);
+		_fade_out_timeout = setTimeout(_hideElements, 2500);
 	};
 
 	var _prevImageEvent = function(event, overlayShownOnOpen) {	
@@ -294,6 +321,18 @@ var simpleBox = (function() {
 		_current_aid++;
 		_openGallery(overlayShownOnOpen);
 	};
+	
+	
+	//helper
+	var _createElement = function(_type, _id, _class, _style, _append) {
+		var newElement = document.createElement(_type);
+		newElement.setAttribute("id", _id);
+		newElement.setAttribute("class", _class);
+		newElement.setAttribute("style", _style);
+		_append.appendChild(newElement);
+
+		return newElement;
+	};
 
 
 	var _galleries = {};
@@ -305,41 +344,10 @@ var simpleBox = (function() {
 	var _currently_open;
 	
 	var _loading_image;
-
+	var _nav_prev_image;
+	var _nav_next_image;
+	
+	var _fade_out_timeout;
 
 	return simpleBox;
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-function createElement (_type, _id, _class, _style, _append) {
-	var newElement = document.createElement(_type);
-	newElement.setAttribute("id", _id);
-	newElement.setAttribute("class", _class);
-	newElement.setAttribute("style", _style);
-	_append.appendChild(newElement);
-
-	return newElement;
-};
-
-function removeElement (_id) {
-	var element = document.getElementById(_id);
-	element.outerHTML = "";
-	delete element;
-}
-
-
-var fade_out_timeout;
-
-
-
-

@@ -10,6 +10,19 @@ img.simplebox_image_portrait {
 	height: 100%;
 }
 
+img.simplebox_arrow_prev {
+	top: calc(50% - 50px);
+	left: 25px;
+	position: absolute;
+	float: left;
+}
+
+img.simplebox_arrow_next {
+	top: calc(50% - 50px);
+	right: 25px;
+	position: absolute;
+	float: right;
+}
 
 .simplebox_image_landscape {
     margin: auto 0;
@@ -46,25 +59,23 @@ img.simplebox_image_portrait {
 }
 
 .simplebox_mainarea_prev {
-    background: rgb(255,255,255);
-    opacity: 0.5;
+    opacity: 0.4;
 	width: 100%;
 	height: 100%
 }
 
 .simplebox_mainarea_next {
-    background: rgb(255,255,255);
-    opacity: 0.5;
+    opacity: 0.4;
     width: 100%;
 	height: 100%
 }
 
 .simplebox_mainarea_prev:hover {
-	opacity: 0.75;
+	opacity: 0.65;
 }
 
 .simplebox_mainarea_next:hover {
-	opacity: 0.75;
+	opacity: 0.65;
 }
 
 .simplebox_mainarea_prev_wrapper {

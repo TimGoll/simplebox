@@ -45,6 +45,6 @@ The class `simplebox_imageLink` is just a small helper for you which adds a poin
 
 ## TODO
 - add `simpleBox="textarea"`, `simpleBox="iframe"`, `simpleBox="popup"`
-- prev and next arrow images
 - close if clicked on description if lower element is background
 - close view button
+- open images or popups in general via javascript
