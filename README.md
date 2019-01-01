@@ -32,10 +32,11 @@ A gallery is a slideshow of at least one image. There is no limit.
 The argument `simpleBox="gallery"` has to be set in order for the library to detect the link. There will be other options at a later point.
 
 ### Gallery ID
-`gid` has to be set if you want to have more than one gallery. You can safely ignore it, if you don't plant on adding more galleries. It can be any unique string. 
+`gid` has to be set if you want to have more than one gallery. You can safely ignore it, if you don't plant on adding more galleries. It can be any unique string.
 
 ### Title and Description
-You can add a default HTML `title` to the link and its content will be added into the description area. However you can add a dedicated `description` tag in order to add a special description to the image. It accepts HTML.
+You can add a default HTML `title` to the link and its content will be added into the description area. However you can add a dedicated `description` tag in order to add a special description to the image. It accepts HTML.<br>
+If an image has no description the footer area is hidden. You can set the `description` tag to an empty string if you want to hide the footer area but without renouncing the `title` tag.
 
 ### Second Source
 It is possible to add a high resolution source tag to the link in order to have to different image paths. A `src` tag in the `a` tag is everything you have to do.

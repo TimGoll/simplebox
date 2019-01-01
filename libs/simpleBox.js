@@ -30,7 +30,7 @@ var simpleBox = (function() {
 			_closeGallery();
 		}
 	};
-	
+
 	window.onresize = function(event) {
 		_changeImageMode(document.getElementById(IDs.IMAGE));
 		_setNavAreas(document.getElementById(IDs.IMAGE));
@@ -54,7 +54,7 @@ var simpleBox = (function() {
 					_galleries[gid] = [];
 				src = all_galleries[i].getAttribute('src') || all_galleries[i].children[0].src;
 				_galleries[gid].push(src);
-				
+
 				//set description text
 				if (_descrition[gid] === undefined)
 					_descrition[gid] = [];
@@ -63,17 +63,17 @@ var simpleBox = (function() {
 
 				all_galleries[i].id = 'img_id_' + (_galleries[gid].length-1).toString();
 			}
-			
+
 			// preload loading icon
 			_loading_image = new Image();
 			_loading_image.src = '../media/loading.png';
-			
+
 			//preload nav elements
 			_nav_prev_image = new Image();
 			_nav_prev_image.src       = '../media/arrow_prev.png';
 			_nav_prev_image.className = IDs.MAINAREA_PREV_IMG;
 			_nav_prev_image.id        = IDs.MAINAREA_PREV_IMG;
-			
+
 			_nav_next_image = new Image();
 			_nav_next_image.src       = '../media/arrow_next.png';
 			_nav_next_image.className = IDs.MAINAREA_NEXT_IMG;
@@ -90,7 +90,7 @@ var simpleBox = (function() {
 	var _openGallery = function(overlayShownOnOpen) {
 		if (overlayShownOnOpen === undefined)
 			overlayShownOnOpen = true;
-		
+
 		_currently_open = true;
 
 		var src = _galleries[_current_gid][_current_aid];
@@ -104,14 +104,15 @@ var simpleBox = (function() {
 		image.onload = function() {
 			_changeImageMode(image);
 			_setNavAreas(image);
-			
+
 			//enable visibility of image
 			document.getElementById(IDs.IMAGE_LOADING).remove();
 			image.style.opacity = "1.0";
-			
-			//set description
-			document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _descrition[_current_gid][_current_aid];
-			
+
+			//set description if not empty string
+			if (_descrition[_current_gid][_current_aid] != '')
+				document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _descrition[_current_gid][_current_aid];
+
 			//enable nav elements
 			_nav_prev_image.style = "opacity: 1.0;";
 			_nav_next_image.style = "opacity: 1.0;";
@@ -132,28 +133,27 @@ var simpleBox = (function() {
 
 	var _displayFrame = function (path, gid, aid, overlayShownOnOpen) {
 
-		var nav_prev = aid > 0;
-		var nav_next = aid < _galleries[gid].length-1;
+		var nav_prev    = aid > 0;
+		var nav_next    = aid < _galleries[gid].length-1;
+		var footer_desc = _descrition[gid][aid] != '';
 
-		_createBox(nav_prev, nav_next, overlayShownOnOpen);
+		_createBox(nav_prev, nav_next, footer_desc, overlayShownOnOpen);
 		document.body.style.overflow = 'hidden';
-		
+
 		document.getElementById(IDs.IMAGE).src = path;
 	};
 
-	var _createBox = function (nav_prev, nav_next, overlayShownOnOpen) {
+	var _createBox = function (nav_prev, nav_next, footer_desc, overlayShownOnOpen) {
 		document.addEventListener('mousemove', _mouseMoveEvent);
 		document.addEventListener('click', _clickEvent);
-		
+
 		if (overlayShownOnOpen)
 			overlay_display = 'display: block;';
 		else
 			overlay_display = 'display: none;';
 
 		var simplebox_background	= _createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
-		var simplebox_footer_shadow = _createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, overlay_display, simplebox_background);
-		var simplebox_footer		= _createElement('div', IDs.FOOTER, IDs.FOOTER, overlay_display, simplebox_background);
-		var simplebox_footer_desc   = _createElement('div', IDs.FOOTER_DESCRIPTION, IDs.FOOTER_DESCRIPTION, '', simplebox_footer);
+
 		var simplebox_image_wrapper = _createElement('div', IDs.IMAGE_WRAP, IDs.IMAGE_WRAP, '', simplebox_background);
 			simplebox_image_wrapper.appendChild(_loading_image);
 			_loading_image.class = IDs.IMAGE_LOADING;
@@ -175,11 +175,16 @@ var simpleBox = (function() {
 			_nav_next_image.style = "opacity: 0.0;";
 			simplebox_next.appendChild(_nav_next_image);
 		}
+		if (footer_desc) {
+			var simplebox_footer_shadow = _createElement('div', IDs.FOOTERSHADOW, IDs.FOOTERSHADOW, overlay_display, simplebox_background);
+			var simplebox_footer		= _createElement('div', IDs.FOOTER, IDs.FOOTER, overlay_display, simplebox_background);
+			var simplebox_footer_desc   = _createElement('div', IDs.FOOTER_DESCRIPTION, IDs.FOOTER_DESCRIPTION, '', simplebox_footer);
+		}
 	};
 
 	var _changeImageMode = function(image) {
 		var image_wrap = document.getElementById(IDs.IMAGE_WRAP);
-		
+
 		if (window.innerWidth / window.innerHeight <= image.width / image.height) {
 			image_wrap.className = 'simplebox_image_landscape';
 			image.className      = 'simplebox_image_landscape';
@@ -242,7 +247,7 @@ var simpleBox = (function() {
 
 	var _fadeOut = function(element_id, time_in_ms) {
 		var element = document.getElementById(element_id);
-		
+
 		if (element == null || element.style.display == 'none')
 			return;
 
@@ -263,10 +268,10 @@ var simpleBox = (function() {
 
 	var _fadeIn = function(element_id, time_in_ms, start_value, end_value) {
 		var element = document.getElementById(element_id);
-		
+
 		if (element == null || element.style.display == 'block')
 			return;
-		
+
 		element.style.display = 'block';
 
 		var op = 0.0;
@@ -298,7 +303,7 @@ var simpleBox = (function() {
 		_fade_out_timeout = setTimeout(_hideElements, 2500);
 	};
 
-	var _prevImageEvent = function(event, overlayShownOnOpen) {	
+	var _prevImageEvent = function(event, overlayShownOnOpen) {
 		if (!_currently_open)
 			return;
 
@@ -310,7 +315,7 @@ var simpleBox = (function() {
 		_openGallery(overlayShownOnOpen);
 	};
 
-	var _nextImageEvent = function(event, overlayShownOnOpen) {		
+	var _nextImageEvent = function(event, overlayShownOnOpen) {
 		if (!_currently_open)
 			return;
 
@@ -321,8 +326,8 @@ var simpleBox = (function() {
 		_current_aid++;
 		_openGallery(overlayShownOnOpen);
 	};
-	
-	
+
+
 	//helper
 	var _createElement = function(_type, _id, _class, _style, _append) {
 		var newElement = document.createElement(_type);
@@ -342,11 +347,11 @@ var simpleBox = (function() {
 	var _current_gid;
 	var _current_aid;
 	var _currently_open;
-	
+
 	var _loading_image;
 	var _nav_prev_image;
 	var _nav_next_image;
-	
+
 	var _fade_out_timeout;
 
 	return simpleBox;
