@@ -36,7 +36,7 @@ The argument `simpleBox="gallery"` has to be set in order for the library to det
 
 ### Title and Description
 You can add a default HTML `title` to the link and its content will be added into the description area. However you can add a dedicated `description` tag in order to add a special description to the image. It accepts HTML.<br>
-If an image has no description the footer area is hidden. You can set the `description` tag to an empty string if you want to hide the footer area but without renouncing the `title` tag.
+If an image has no description the footer area is hidden. You can set the `description` tag to an empty string if you want to hide the footer area without renouncing the `title` tag.
 
 ### Second Source
 It is possible to add a high resolution source tag to the link in order to have to different image paths. A `src` tag in the `a` tag is everything you have to do.

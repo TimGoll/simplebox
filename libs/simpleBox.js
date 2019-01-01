@@ -1,28 +1,28 @@
 var simpleBox = (function() {
 	//IDs / Classes
 	var IDs = {
-		MAINAREA		   : "simplebox_mainarea",
-		MAINAREA_PREV	   : "simplebox_mainarea_prev",
+		MAINAREA           : "simplebox_mainarea",
+		MAINAREA_PREV      : "simplebox_mainarea_prev",
 		MAINAREA_PREV_WRAP : "simplebox_mainarea_prev_wrapper",
 		MAINAREA_PREV_IMG  : "simplebox_arrow_prev",
-		MAINAREA_NEXT	   : "simplebox_mainarea_next",
+		MAINAREA_NEXT      : "simplebox_mainarea_next",
 		MAINAREA_NEXT_WRAP : "simplebox_mainarea_next_wrapper",
 		MAINAREA_NEXT_IMG  : "simplebox_arrow_next",
-		BACKGROUND		   : "simplebox_background",
-		IMAGE			   : "simplebox_image",
-		IMAGE_WRAP		   : "simplebox_image_wrapper",
-		IMAGE_LOADING	   : "simplebox_image_loading",
-		FOOTERSHADOW	   : "simplebox_footer_shadow",
-		FOOTER			   : "simplebox_footer",
+		BACKGROUND         : "simplebox_background",
+		IMAGE              : "simplebox_image",
+		IMAGE_WRAP         : "simplebox_image_wrapper",
+		IMAGE_LOADING      : "simplebox_image_loading",
+		FOOTERSHADOW       : "simplebox_footer_shadow",
+		FOOTER             : "simplebox_footer",
 		FOOTER_DESCRIPTION : "simplebox_footer_description",
-		SHADOW			   : "simplebox_shadow"
+		SHADOW             : "simplebox_shadow"
 
 	};
 
 	window.onkeydown = function(event) {
 		var key = event.keyCode ? event.keyCode : event.which;
 
-		if (key === 37) {		//left arrow
+		if (key === 37) {        //left arrow
 			_prevImageEvent(null, false);
 		} else if (key === 39) { //right arrow
 			_nextImageEvent(null, false);
@@ -189,16 +189,16 @@ var simpleBox = (function() {
 			image_wrap.className = 'simplebox_image_landscape';
 			image.className      = 'simplebox_image_landscape';
 
-			image_wrap.style['width']	   = (window.innerWidth - 2 * _offset) + "px";
-			image_wrap.style['height']	   = ((window.innerWidth - 2 * _offset) / image.width * image.height) + "px";
+			image_wrap.style['width']       = (window.innerWidth - 2 * _offset) + "px";
+			image_wrap.style['height']      = ((window.innerWidth - 2 * _offset) / image.width * image.height) + "px";
 			image_wrap.style['margin-left'] = _offset + "px";
 			image_wrap.style['margin-top']  = (window.innerHeight - image.height) / 2 + "px";
 		} else {
 			image_wrap.className = 'simplebox_image_portrait';
 			image.className      = 'simplebox_image_portrait';
 
-			image_wrap.style['height']	  = (window.innerHeight - 2 * _offset) + "px";
-			image_wrap.style['width']	   = ((window.innerHeight - 2 * _offset) / image.height * image.width) + "px";
+			image_wrap.style['height']      = (window.innerHeight - 2 * _offset) + "px";
+			image_wrap.style['width']       = ((window.innerHeight - 2 * _offset) / image.height * image.width) + "px";
 			image_wrap.style['margin-top']  = _offset + "px";
 			image_wrap.style['margin-left'] = (window.innerWidth - image.width) / 2 + "px";
 		}
@@ -215,7 +215,7 @@ var simpleBox = (function() {
 		var prev_area = document.getElementById(IDs.MAINAREA_PREV_WRAP);
 		if (prev_area != undefined) {
 			prev_area.style.left   = (c_width - width) / 2 + "px";
-			prev_area.style.top	   = this_image.style['margin-top'];
+			prev_area.style.top    = this_image.style['margin-top'];
 			prev_area.style.width  = "200px";
 			prev_area.style.height = height + "px";
 		}
@@ -223,7 +223,7 @@ var simpleBox = (function() {
 		var next_area = document.getElementById(IDs.MAINAREA_NEXT_WRAP);
 		if (next_area != undefined) {
 			next_area.style.right  = (c_width - width) / 2 + "px";
-			next_area.style.top	   = this_image.style['margin-top'];
+			next_area.style.top    = this_image.style['margin-top'];
 			next_area.style.width  = (width - 200) + "px";
 			next_area.style.height = height + "px";
 		}
