@@ -10,8 +10,9 @@ var simpleBox = (function() {
 		MAINAREA_NEXT_IMG  : "simplebox_arrow_next",
 		BACKGROUND         : "simplebox_background",
 		IMAGE              : "simplebox_image",
-		IMAGE_WRAP         : "simplebox_image_wrapper",
-		IMAGE_LOADING      : "simplebox_image_loading",
+		IFRAME             : "simplebox_iframe",
+		CONTENT_WRAP       : "simplebox_content_wrapper",
+		CONTET_LOADING     : "simplebox_content_loading",
 		FOOTERSHADOW       : "simplebox_footer_shadow",
 		FOOTER             : "simplebox_footer",
 		FOOTER_DESCRIPTION : "simplebox_footer_description",
@@ -33,18 +34,29 @@ var simpleBox = (function() {
 
 	window.onresize = function(event) {
 		if (_currently_open == true) {
-			_changeImageMode(document.getElementById(IDs.IMAGE));
-			_setNavAreas(document.getElementById(IDs.IMAGE));
+			_changeContentMode();
+			_setNavAreas();
 		}
 	};
 
 
 	var simpleBox = {
-		init : function({offset} = {}) {
-			_offset = offset || 50;
+		init : function({offset, background} = {}) {
+			_settings.offset            = offset || 50;
+			_settings.background        = {};
+			_settings.background.color  = background.color || 'rgba(0,0,0,0.75)';
+
+			if (background === undefined || background.blur === undefined) {
+				_settings.background.blur = false;
+			} else  {
+				_settings.background.blur = true;
+				_settings.background.top_content = background.blur;
+			}
+
+			console.log(_settings)
 
 			// iterate over DOM elements to find suitable galleries
-			_set_up_iteration('gallery');
+			_set_up_iteration('image');
 			_set_up_iteration('iframe');
 			_set_up_iteration('html');
 
@@ -106,20 +118,24 @@ var simpleBox = (function() {
 		if (overlayShownOnOpen)
 			_fade_out_timeout = setTimeout(_hideElements, 2500);
 		
-			_displayFrame(
+		_displayFrame(
 			_page_object_data[_current_gid][_current_aid].src,
 			overlayShownOnOpen
 		);
 
-		//image stuff
-		var image = document.getElementById(IDs.IMAGE);
-		image.onload = function() {
-			_changeImageMode(image);
-			_setNavAreas(image);
+		//onload
+		if (_page_object_data[_current_gid][_current_aid].type == 'image')
+			var content = document.getElementById(IDs.IMAGE);
+		else if (_page_object_data[_current_gid][_current_aid].type == 'iframe')
+			var content = document.getElementById(IDs.IFRAME);
+			
+		content.onload = function() {
+			_changeContentMode();
+			_setNavAreas();
 
 			//enable visibility of image
-			document.getElementById(IDs.IMAGE_LOADING).remove();
-			image.style.opacity = "1.0";
+			document.getElementById(IDs.CONTENT_LOADING).remove();
+			content.style.opacity = "1.0";
 
 			//set description if not empty string
 			if (_page_object_data[_current_gid][_current_aid].desc != '')
@@ -129,6 +145,11 @@ var simpleBox = (function() {
 			_nav_prev_image.style = "opacity: 1.0;";
 			_nav_next_image.style = "opacity: 1.0;";
 		};
+
+		if (_settings.background.blur != false) {
+			document.getElementById(_settings.background.top_content).style.filter = 'blur(5px)';
+			document.getElementById(_settings.background.top_content).style.transform = 'scale(1.01)';
+		}
 	};
 
 	var _closeGallery = function() {
@@ -141,6 +162,11 @@ var simpleBox = (function() {
 
 		document.getElementById(IDs.BACKGROUND).remove();
 		document.body.style.overflow = '';
+
+		if (_settings.background.blur != false) {
+			document.getElementById(_settings.background.top_content).style.filter = '';
+			document.getElementById(_settings.background.top_content).style.transform = 'scale(1.0)';
+		}
 	};
 
 	var _displayFrame = function (path, overlayShownOnOpen) {
@@ -150,8 +176,15 @@ var simpleBox = (function() {
 
 		_createBox(nav_prev, nav_next, footer_desc, overlayShownOnOpen);
 		document.body.style.overflow = 'hidden';
-
-		document.getElementById(IDs.IMAGE).src = path;
+		
+		if (_page_object_data[_current_gid][_current_aid].type == 'image') {
+			let image = _createElement('img', IDs.IMAGE, '', 'opacity: 0.0;', document.getElementById(IDs.CONTENT_WRAP));
+			image.src = path;
+		} else
+		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
+			let iframe = _createElement('iframe', IDs.IFRAME, '', 'opacity: 0.0;', document.getElementById(IDs.CONTENT_WRAP));
+			iframe.src = path;
+		}
 	};
 
 	var _createBox = function (nav_prev, nav_next, footer_desc, overlayShownOnOpen) {
@@ -163,14 +196,14 @@ var simpleBox = (function() {
 		else
 			overlay_display = 'display: none;';
 
-		var simplebox_background	= _createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
+		var simplebox_background = _createElement('div', IDs.BACKGROUND, IDs.BACKGROUND, '', document.body);
+		simplebox_background.style.background = _settings.background.color;
 
-		var simplebox_image_wrapper = _createElement('div', IDs.IMAGE_WRAP, IDs.IMAGE_WRAP, '', simplebox_background);
-			simplebox_image_wrapper.appendChild(_loading_image);
-			_loading_image.class = IDs.IMAGE_LOADING;
-			_loading_image.id	 = IDs.IMAGE_LOADING;
+		var simplebox_content_wrapper = _createElement('div', IDs.CONTENT_WRAP, IDs.CONTENT_WRAP, '', simplebox_background);
+			simplebox_content_wrapper.appendChild(_loading_image);
+			_loading_image.class = IDs.CONTENT_LOADING;
+			_loading_image.id	 = IDs.CONTENT_LOADING;
 			_loading_image.style = "margin-left: 46px; margin-top:46px; opacity: .5;"
-		var simplebox_image		 = _createElement('img', IDs.IMAGE, '', 'opacity: 0.0;', simplebox_image_wrapper);
 
 		if (nav_prev) {
 			var simplebox_prev_wrapper = _createElement('div', IDs.MAINAREA_PREV_WRAP, IDs.MAINAREA_PREV_WRAP, overlay_display, simplebox_background);
@@ -193,40 +226,72 @@ var simpleBox = (function() {
 		}
 	};
 
-	var _changeImageMode = function(image) {
-		var image_wrap = document.getElementById(IDs.IMAGE_WRAP);
+	var _changeContentMode = function() {
+		var content_wrap = document.getElementById(IDs.CONTENT_WRAP);
 
-		if (window.innerWidth / window.innerHeight <= image.width / image.height) {
-			image_wrap.className = 'simplebox_image_landscape';
-			image.className      = 'simplebox_image_landscape';
+		if (_page_object_data[_current_gid][_current_aid].type == 'image') {
+			let image = document.getElementById(IDs.IMAGE);
 
-			image_wrap.style['width']       = (window.innerWidth - 2 * _offset) + "px";
-			image_wrap.style['height']      = ((window.innerWidth - 2 * _offset) / image.width * image.height) + "px";
-			image_wrap.style['margin-left'] = _offset + "px";
-			image_wrap.style['margin-top']  = (window.innerHeight - image.height) / 2 + "px";
-		} else {
-			image_wrap.className = 'simplebox_image_portrait';
-			image.className      = 'simplebox_image_portrait';
+			if (window.innerWidth / window.innerHeight <= image.width / image.height) {
+				content_wrap.className = 'simplebox_image_landscape';
+				image.className        = 'simplebox_image_landscape';
+	
+				content_wrap.style['width']       = (window.innerWidth - 2 * _settings.offset) + "px";
+				content_wrap.style['height']      = ((window.innerWidth - 2 * _settings.offset) / image.width * image.height) + "px";
+				content_wrap.style['margin-left'] = _settings.offset + "px";
+				content_wrap.style['margin-top']  = (window.innerHeight - image.height) / 2 + "px";
+			} else {
+				content_wrap.className = 'simplebox_image_portrait';
+				image.className        = 'simplebox_image_portrait';
+	
+				content_wrap.style['height']      = (window.innerHeight - 2 * _settings.offset) + "px";
+				content_wrap.style['width']       = ((window.innerHeight - 2 * _settings.offset) / image.height * image.width) + "px";
+				content_wrap.style['margin-top']  = _settings.offset + "px";
+				content_wrap.style['margin-left'] = (window.innerWidth - image.width) / 2 + "px";
+			}
+		} else
+		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
+			let iframe = document.getElementById(IDs.IFRAME);
 
-			image_wrap.style['height']      = (window.innerHeight - 2 * _offset) + "px";
-			image_wrap.style['width']       = ((window.innerHeight - 2 * _offset) / image.height * image.width) + "px";
-			image_wrap.style['margin-top']  = _offset + "px";
-			image_wrap.style['margin-left'] = (window.innerWidth - image.width) / 2 + "px";
+			content_wrap.className = '';
+
+			content_wrap.style['height']      = (window.innerHeight - 2 * _settings.offset) + "px";
+			content_wrap.style['width']       = (window.innerWidth - 2 * _settings.offset) + "px";
+			content_wrap.style['margin-top']  = _settings.offset + "px";
+			content_wrap.style['margin-left'] = _settings.offset + "px";
+
+			iframe.style['height'] = (window.innerHeight - 2 * _settings.offset) + "px";
+			iframe.style['width']  = (window.innerWidth - 2 * _settings.offset) + "px";
+			iframe.style['border'] = "none";
 		}
+
+		
 	};
 
-	var _setNavAreas = function(image) {
-		var width  = image.width;
-		var height = image.height;
+	var _setNavAreas = function() {
+		if (_page_object_data[_current_gid][_current_aid].type == 'image') {
+			let image = document.getElementById(IDs.IMAGE);
 
-		var c_width	= window.innerWidth;
+			var width  = image.width;
+			var height = image.height;
 
-		var this_image = document.getElementById(IDs.IMAGE_WRAP);
+			var c_width	= window.innerWidth;
+		} else
+		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
+			let iframe = document.getElementById(IDs.IFRAME);
+
+			var height = window.innerHeight - 2 * _settings.offset;
+			var width  = window.innerWidth - 2 * _settings.offset;
+
+			var c_width	= window.innerWidth;
+		}
+
+		let content_wrap = document.getElementById(IDs.CONTENT_WRAP);
 
 		var prev_area = document.getElementById(IDs.MAINAREA_PREV_WRAP);
 		if (prev_area != undefined) {
 			prev_area.style.left   = (c_width - width) / 2 + "px";
-			prev_area.style.top    = this_image.style['margin-top'];
+			prev_area.style.top    = content_wrap.style['margin-top'];
 			prev_area.style.width  = "200px";
 			prev_area.style.height = height + "px";
 		}
@@ -234,7 +299,7 @@ var simpleBox = (function() {
 		var next_area = document.getElementById(IDs.MAINAREA_NEXT_WRAP);
 		if (next_area != undefined) {
 			next_area.style.right  = (c_width - width) / 2 + "px";
-			next_area.style.top    = this_image.style['margin-top'];
+			next_area.style.top    = content_wrap.style['margin-top'];
 			next_area.style.width  = (width - 200) + "px";
 			next_area.style.height = height + "px";
 		}
@@ -349,10 +414,6 @@ var simpleBox = (function() {
 		return newElement;
 	};
 
-
-	var _galleries = {};
-	var _descrition = {};
-
 	var _page_object_data = {};
 	/*
 		{
@@ -373,7 +434,7 @@ var simpleBox = (function() {
 		}
 	*/
 
-	var _offset;
+	var _settings = {};
 
 	var _current_gid;
 	var _current_aid;
