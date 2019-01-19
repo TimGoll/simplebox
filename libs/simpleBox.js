@@ -32,8 +32,10 @@ var simpleBox = (function() {
 	};
 
 	window.onresize = function(event) {
-		_changeImageMode(document.getElementById(IDs.IMAGE));
-		_setNavAreas(document.getElementById(IDs.IMAGE));
+		if (_currently_open == true) {
+			_changeImageMode(document.getElementById(IDs.IMAGE));
+			_setNavAreas(document.getElementById(IDs.IMAGE));
+		}
 	};
 
 
@@ -41,28 +43,12 @@ var simpleBox = (function() {
 		init : function({offset} = {}) {
 			_offset = offset || 50;
 
-			var all_galleries = document.querySelectorAll("[simpleBox='gallery']");
-			var all_galleries_amnt = all_galleries.length;
+			// iterate over DOM elements to find suitable galleries
+			_set_up_iteration('gallery');
+			_set_up_iteration('iframe');
+			_set_up_iteration('html');
 
-			for (var i = 0; i < all_galleries_amnt; i++) {
-				all_galleries[i].addEventListener('click', _showGallery);
-
-				var gid = all_galleries[i].getAttribute('gid');
-
-				//set image path
-				if (_galleries[gid] === undefined)
-					_galleries[gid] = [];
-				src = all_galleries[i].getAttribute('src') || all_galleries[i].children[0].src;
-				_galleries[gid].push(src);
-
-				//set description text
-				if (_descrition[gid] === undefined)
-					_descrition[gid] = [];
-				description = all_galleries[i].getAttribute('description') || all_galleries[i].title || '';
-				_descrition[gid].push(description);
-
-				all_galleries[i].id = 'img_id_' + (_galleries[gid].length-1).toString();
-			}
+			console.log(_page_object_data);
 
 			// preload loading icon
 			_loading_image = new Image();
@@ -81,23 +67,49 @@ var simpleBox = (function() {
 		}
 	};
 
+	var _set_up_iteration = function(type) {
+		galleries = document.querySelectorAll(`[simpleBox='${type}']`);
+		for (let i = 0; i < galleries.length; i++) {
+			//add event listener to open window
+			galleries[i].addEventListener('click', _showGallery);
+
+			//get unique identifier string and check if gallery already exists
+			let gid = galleries[i].getAttribute('gid');
+			if (_page_object_data[gid] === undefined)
+				_page_object_data[gid] = []; //add empty array
+
+			//gather data for new element and push into array
+			_page_object_data[gid].push({
+				type: type,
+				src: galleries[i].getAttribute('src') || galleries[i].children[0].src,
+				desc: galleries[i].getAttribute('description') || galleries[i].title || ''
+			});
+
+			//store automatic ID for later usage
+			galleries[i].id = `element_id_${_page_object_data[gid].length-1}`;
+		}
+	};
+
 	var _showGallery = function(event) {
-		_current_gid = event.path[1].getAttribute('gid');	//gallery id
-		_current_aid = event.path[1].id.substring(7);		//array id
+		_current_gid = event.path[1].getAttribute('gid');					//gallery id
+		_current_aid = event.path[1].id.substring('element_id_'.length);	//element id
 		_openGallery();
 	};
 
 	var _openGallery = function(overlayShownOnOpen) {
-		if (overlayShownOnOpen === undefined)
-			overlayShownOnOpen = true;
-
+		//gallery is now open
 		_currently_open = true;
 
-		var src = _galleries[_current_gid][_current_aid];
-		_displayFrame(src, _current_gid, _current_aid, overlayShownOnOpen);
-
+		if (overlayShownOnOpen === undefined)
+			overlayShownOnOpen = true;
+			
 		if (overlayShownOnOpen)
 			_fade_out_timeout = setTimeout(_hideElements, 2500);
+		
+			_displayFrame(
+			_page_object_data[_current_gid][_current_aid].src,
+			overlayShownOnOpen
+		);
 
 		//image stuff
 		var image = document.getElementById(IDs.IMAGE);
@@ -110,8 +122,8 @@ var simpleBox = (function() {
 			image.style.opacity = "1.0";
 
 			//set description if not empty string
-			if (_descrition[_current_gid][_current_aid] != '')
-				document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _descrition[_current_gid][_current_aid];
+			if (_page_object_data[_current_gid][_current_aid].desc != '')
+				document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _page_object_data[_current_gid][_current_aid].desc;
 
 			//enable nav elements
 			_nav_prev_image.style = "opacity: 1.0;";
@@ -131,11 +143,10 @@ var simpleBox = (function() {
 		document.body.style.overflow = '';
 	};
 
-	var _displayFrame = function (path, gid, aid, overlayShownOnOpen) {
-
-		var nav_prev    = aid > 0;
-		var nav_next    = aid < _galleries[gid].length-1;
-		var footer_desc = _descrition[gid][aid] != '';
+	var _displayFrame = function (path, overlayShownOnOpen) {
+		let nav_prev    = _current_aid > 0;
+		let nav_next    = _current_aid < _page_object_data[_current_gid].length-1;
+		let footer_desc = _page_object_data[_current_gid][_current_aid].desc != '';
 
 		_createBox(nav_prev, nav_next, footer_desc, overlayShownOnOpen);
 		document.body.style.overflow = 'hidden';
@@ -290,7 +301,6 @@ var simpleBox = (function() {
 
 
 
-
 	//Eventhandlers
 	var _clickEvent = function(event) {
 		if (event.target.id === IDs.BACKGROUND)
@@ -319,7 +329,7 @@ var simpleBox = (function() {
 		if (!_currently_open)
 			return;
 
-		if (_current_aid >= _galleries[_current_gid].length-1)
+		if (_current_aid >= _page_object_data[_current_gid].length-1)
 			return;
 
 		_closeGallery();
@@ -342,6 +352,27 @@ var simpleBox = (function() {
 
 	var _galleries = {};
 	var _descrition = {};
+
+	var _page_object_data = {};
+	/*
+		{
+			'id_string: [
+				{
+					type: 'image' | 'iframe' | 'html',
+					src: 'srcpath',
+					desc: 'descriptiontext'
+				},
+				{
+					...
+				}
+			],
+			[
+				...
+			]
+			
+		}
+	*/
+
 	var _offset;
 
 	var _current_gid;

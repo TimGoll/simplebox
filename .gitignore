@@ -1,1 +1,4 @@
 .idea
+
+#ignore mac specific files
+*.DS_STORE
