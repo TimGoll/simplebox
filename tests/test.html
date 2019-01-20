@@ -10,12 +10,21 @@
 
 	<script>
 		window.onload = function() {
-			simpleBox.init({offset: 50, background: {blur: 'content'}});
+			simpleBox.init({
+				offset: 50, 
+				background: {
+					blur: {
+						content_id: 'content',
+						radius: 17
+					}, 
+					color: 'rgba(0,0,0,0.75)'
+				}
+			});
 		}
 	</script>
 </head>
     <div id="content" class="content">
-		<a simpleBox="image" gid="gal_1" class="simplebox_imageLink" title="Dies ist ein Text"> <img class="prev" src="test_1.jpg"> </a>
+		<a simpleBox="image" gid="gal_1" class="simplebox_imageLink" title="Dies ist ein Text" width="400"> <img class="prev" src="test_1.jpg"> </a>
 		<a simpleBox="image" gid="gal_1" class="simplebox_imageLink" description="Hier kann mehr drin stehen<br>Auch mit HTML tags<br>noch ne zeile<br>und noch eine"> <img class="prev" src="test_2.jpg"> </a>
 		<a simpleBox="image" gid="gal_1" class="simplebox_imageLink" title="Noch ein letzter..." description="Title und Description"> <img class="prev" src="test_3.jpg"> </a>
 
@@ -27,7 +36,7 @@
 
 		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-		<a simpleBox="iframe" gid="a_cool_iframe" class="simplebox_imageLink" src="file:///Users/tim/Documents/__git/simplebox/tests/test.html"> <img class="prev" src="test_1.jpg"> </a>
+		<a simpleBox="iframe" gid="a_cool_iframe" class="simplebox_imageLink" src="file:///Users/tim/Documents/__git/simplebox/tests/test.html" width="450" height="300"> <img class="prev" src="test_1.jpg"> </a>
 		<a simpleBox="iframe" gid="a_cool_iframe" class="simplebox_imageLink" src="https://timgoll.de"> <img class="prev" src="test_1.jpg"> </a>
 		<a simpleBox="html" gid="some_cool_gallery_name" class="simplebox_imageLink"> <img class="prev" src="test_1.jpg"> </a>
     </div>

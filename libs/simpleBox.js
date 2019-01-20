@@ -45,28 +45,44 @@ var simpleBox = (function() {
 			_settings.offset            = offset || 50;
 			_settings.background        = {};
 			_settings.background.color  = background.color || 'rgba(0,0,0,0.75)';
+			_settings.background.blur   = {};
 
 			if (background === undefined || background.blur === undefined) {
-				_settings.background.blur = false;
+				_settings.background.blur.enabled = false;
 			} else  {
-				_settings.background.blur = true;
-				_settings.background.top_content = background.blur;
+				_settings.background.blur.enabled    = true;
+				_settings.background.blur.content_id = background.blur.content_id || 'content';
+				_settings.background.blur.radius     = background.blur.radius || 15;
 			}
 
-			console.log(_settings)
-
+			//print out setup and errors
+			console.log(`[${_lib_name}] Setting up library ...`);
+			console.log(`[${_lib_name}] Set offset to ${_settings.offset}px.`);
+			console.log(`[${_lib_name}] Set background color to ${_settings.background.color}.`);
+			if (!_settings.background.blur.enabled) {
+				console.log(`[${_lib_name}] Background blurring is disabled.`);
+			} else {
+				console.log(`[${_lib_name}] Background blurring is enabled.`);
+				console.log(`[${_lib_name}] Background blur radius set to ${background.blur.radius}.`);
+				if (document.getElementById(background.blur.content_id) === null)
+					console.error(`[${_lib_name}] No background ID with the name ${background.blur.content_id} found.`);
+				else
+					console.log(`[${_lib_name}] background ID set to ${background.blur.content_id}.`);
+			}
+			
 			// iterate over DOM elements to find suitable galleries
 			_set_up_iteration('image');
 			_set_up_iteration('iframe');
 			_set_up_iteration('html');
 
-			console.log(_page_object_data);
+			// print data about galleries
+			console.log(`[${_lib_name}] Found ${Object.keys(_page_object_data).length} different galleries in DOM.`);
 
 			// preload loading icon
 			_loading_image = new Image();
 			_loading_image.src = '../media/loading.png';
 
-			//preload nav elements
+			// preload nav elements
 			_nav_prev_image = new Image();
 			_nav_prev_image.src       = '../media/arrow_prev.png';
 			_nav_prev_image.className = IDs.MAINAREA_PREV_IMG;
@@ -94,7 +110,9 @@ var simpleBox = (function() {
 			_page_object_data[gid].push({
 				type: type,
 				src: galleries[i].getAttribute('src') || galleries[i].children[0].src,
-				desc: galleries[i].getAttribute('description') || galleries[i].title || ''
+				desc: galleries[i].getAttribute('description') || galleries[i].title || '',
+				width: parseInt(galleries[i].getAttribute('width')) || -1, //-1 for auto-width
+				height: parseInt(galleries[i].getAttribute('height')) || -1 //-1 for auto-height
 			});
 
 			//store automatic ID for later usage
@@ -146,9 +164,9 @@ var simpleBox = (function() {
 			_nav_next_image.style = "opacity: 1.0;";
 		};
 
-		if (_settings.background.blur != false) {
-			document.getElementById(_settings.background.top_content).style.filter = 'blur(5px)';
-			document.getElementById(_settings.background.top_content).style.transform = 'scale(1.01)';
+		if (_settings.background.blur.enabled != false) {
+			document.getElementById(_settings.background.blur.content_id).style.filter = 'blur(15px)';
+			document.getElementById(_settings.background.blur.content_id).style.transform = 'scale(1.01)';
 		}
 	};
 
@@ -163,9 +181,9 @@ var simpleBox = (function() {
 		document.getElementById(IDs.BACKGROUND).remove();
 		document.body.style.overflow = '';
 
-		if (_settings.background.blur != false) {
-			document.getElementById(_settings.background.top_content).style.filter = '';
-			document.getElementById(_settings.background.top_content).style.transform = 'scale(1.0)';
+		if (_settings.background.blur.enabled != false) {
+			document.getElementById(_settings.background.blur.content_id).style.filter = '';
+			document.getElementById(_settings.background.blur.content_id).style.transform = 'scale(1.0)';
 		}
 	};
 
@@ -229,25 +247,46 @@ var simpleBox = (function() {
 	var _changeContentMode = function() {
 		var content_wrap = document.getElementById(IDs.CONTENT_WRAP);
 
+		//set max width of box
+		if (_page_object_data[_current_gid][_current_aid].width == -1) //default auto sizing
+			var window_width = window.innerWidth;
+		else if (_page_object_data[_current_gid][_current_aid].width + 2*_settings.offset > window.innerWidth) //do not exceed window
+			var window_width = window.innerWidth;
+		else //define custom size
+			var window_width = _page_object_data[_current_gid][_current_aid].width + 2*_settings.offset;
+
+			
+		//set max height of box
+		if (_page_object_data[_current_gid][_current_aid].height == -1) //default auto sizing
+			var window_height = window.innerHeight;
+		else if (_page_object_data[_current_gid][_current_aid].height + 2*_settings.offset > window.innerHeight) //do not exceed window
+			var window_height = window.innerHeight;
+		else //define custom size
+			var window_height = _page_object_data[_current_gid][_current_aid].height + 2*_settings.offset;
+			
+		console.log(_page_object_data[_current_gid][_current_aid].width);
+		console.log(window_width);
+		console.log(window_height);
+
 		if (_page_object_data[_current_gid][_current_aid].type == 'image') {
 			let image = document.getElementById(IDs.IMAGE);
 
-			if (window.innerWidth / window.innerHeight <= image.width / image.height) {
+			if (window_width / window_height <= image.width / image.height) {
 				content_wrap.className = 'simplebox_image_landscape';
 				image.className        = 'simplebox_image_landscape';
 	
-				content_wrap.style['width']       = (window.innerWidth - 2 * _settings.offset) + "px";
-				content_wrap.style['height']      = ((window.innerWidth - 2 * _settings.offset) / image.width * image.height) + "px";
-				content_wrap.style['margin-left'] = _settings.offset + "px";
-				content_wrap.style['margin-top']  = (window.innerHeight - image.height) / 2 + "px";
+				content_wrap.style['width']       = (window_width - 2 * _settings.offset) + "px";
+				content_wrap.style['height']      = ((window_width - 2 * _settings.offset) / image.width * image.height) + "px";
+				content_wrap.style['margin-left'] = ((window.innerWidth - window_width) / 2 + _settings.offset) + "px";
+				content_wrap.style['margin-top']  = (window_height - image.height) / 2 + "px";
 			} else {
 				content_wrap.className = 'simplebox_image_portrait';
 				image.className        = 'simplebox_image_portrait';
 	
-				content_wrap.style['height']      = (window.innerHeight - 2 * _settings.offset) + "px";
-				content_wrap.style['width']       = ((window.innerHeight - 2 * _settings.offset) / image.height * image.width) + "px";
-				content_wrap.style['margin-top']  = _settings.offset + "px";
-				content_wrap.style['margin-left'] = (window.innerWidth - image.width) / 2 + "px";
+				content_wrap.style['height']      = (window_height - 2 * _settings.offset) + "px";
+				content_wrap.style['width']       = ((window_height - 2 * _settings.offset) / image.height * image.width) + "px";
+				content_wrap.style['margin-top']  = ((window.innerHeight - window_height) / 2 + _settings.offset) + "px";
+				content_wrap.style['margin-left'] = (window_width - image.width) / 2 + "px";
 			}
 		} else
 		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
@@ -255,13 +294,13 @@ var simpleBox = (function() {
 
 			content_wrap.className = '';
 
-			content_wrap.style['height']      = (window.innerHeight - 2 * _settings.offset) + "px";
-			content_wrap.style['width']       = (window.innerWidth - 2 * _settings.offset) + "px";
-			content_wrap.style['margin-top']  = _settings.offset + "px";
-			content_wrap.style['margin-left'] = _settings.offset + "px";
+			content_wrap.style['height']      = (window_height - 2 * _settings.offset) + "px";
+			content_wrap.style['width']       = (window_width - 2 * _settings.offset) + "px";
+			content_wrap.style['margin-top']  = ((window.innerHeight - window_height) / 2 + _settings.offset) + "px";
+			content_wrap.style['margin-left'] = ((window.innerWidth - window_width) / 2 + _settings.offset) + "px"; + "px";
 
-			iframe.style['height'] = (window.innerHeight - 2 * _settings.offset) + "px";
-			iframe.style['width']  = (window.innerWidth - 2 * _settings.offset) + "px";
+			iframe.style['height'] = (window_height - 2 * _settings.offset) + "px";
+			iframe.style['width']  = (window_width - 2 * _settings.offset) + "px";
 			iframe.style['border'] = "none";
 		}
 
@@ -280,8 +319,8 @@ var simpleBox = (function() {
 		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
 			let iframe = document.getElementById(IDs.IFRAME);
 
-			var height = window.innerHeight - 2 * _settings.offset;
-			var width  = window.innerWidth - 2 * _settings.offset;
+			var height = parseInt(iframe.style.height);
+			var width  = parseInt(iframe.style.width);
 
 			var c_width	= window.innerWidth;
 		}
@@ -433,6 +472,8 @@ var simpleBox = (function() {
 			
 		}
 	*/
+
+	var _lib_name = 'simpleBox';
 
 	var _settings = {};
 
