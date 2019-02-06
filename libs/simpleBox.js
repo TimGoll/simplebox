@@ -39,7 +39,6 @@ var simpleBox = (function() {
 		}
 	};
 
-
 	var simpleBox = {
 		init : function({offset, background} = {}) {
 			_settings.offset            = offset || 50;
@@ -71,9 +70,9 @@ var simpleBox = (function() {
 			}
 			
 			// iterate over DOM elements to find suitable galleries
-			_set_up_iteration('image');
-			_set_up_iteration('iframe');
-			_set_up_iteration('html');
+			_set_up_iteration_data('image');
+			_set_up_iteration_data('iframe');
+			_set_up_iteration_data('html');
 
 			// print data about galleries
 			console.log(`[${_lib_name}] Found ${Object.keys(_page_object_data).length} different galleries in DOM.`);
@@ -92,33 +91,108 @@ var simpleBox = (function() {
 			_nav_next_image.src       = '../media/arrow_next.png';
 			_nav_next_image.className = IDs.MAINAREA_NEXT_IMG;
 			_nav_next_image.id        = IDs.MAINAREA_NEXT_IMG;
+		},
+		// adds image to gallery handler and returns gallery data
+		addImage : function({src, gallery_id, description, width, height} = {}) {
+			if (src == undefined) {
+				console.error(`[${_lib_name}] You must at least define an image source to init a new gallery`);
+				return;
+			}
+
+			gallery_id = gallery_id || 'default_gallery_img';
+
+			return _add_conent_generic(
+				src,
+				gallery_id || 'default_gallery_image',
+				'image',
+				description,
+				width,
+				height
+			);
+		},
+		// adds iframe to gallery handler and returns gallery data
+		addWebpage : function({src, gallery_id, description, width, height} = {}) {
+			if (src == undefined) {
+				console.error(`[${_lib_name}] You must at least define an iframe source to init a new gallery`);
+				return;
+			}
+
+			return _add_conent_generic(
+				src,
+				gallery_id || 'default_gallery_iframe',
+				'iframe',
+				description,
+				width,
+				height
+			);
+		},
+		addInlineHtml : function() {
+
+		},
+		displayContent : function(gallery_data) {
+			_current_gid = gallery_data.gallery_id;
+			_current_aid = gallery_data.element_id;
+			_openGallery();
 		}
+
 	};
 
-	var _set_up_iteration = function(type) {
+	var _set_up_iteration_data = function(type) {
 		galleries = document.querySelectorAll(`[simpleBox='${type}']`);
 		for (let i = 0; i < galleries.length; i++) {
 			//add event listener to open window
 			galleries[i].addEventListener('click', _showGallery);
 
-			//get unique identifier string and check if gallery already exists
-			let gid = galleries[i].getAttribute('gid');
-			if (_page_object_data[gid] === undefined)
-				_page_object_data[gid] = []; //add empty array
-
-			//gather data for new element and push into array
-			_page_object_data[gid].push({
-				type: type,
-				src: galleries[i].getAttribute('src') || galleries[i].children[0].src,
-				desc: galleries[i].getAttribute('description') || galleries[i].title || '',
-				width: parseInt(galleries[i].getAttribute('width')) || -1, //-1 for auto-width
-				height: parseInt(galleries[i].getAttribute('height')) || -1 //-1 for auto-height
-			});
-
-			//store automatic ID for later usage
-			galleries[i].id = `element_id_${_page_object_data[gid].length-1}`;
+			//push data
+			let gal_data = _add_conent_generic(
+				galleries[i].getAttribute('src') || galleries[i].children[0].src,
+				galleries[i].getAttribute('gid'),
+				type,
+				galleries[i].getAttribute('description') || galleries[i].title,
+				parseInt(galleries[i].getAttribute('width')),
+				parseInt(galleries[i].getAttribute('height'))
+			);
+			
+			//store automatic ID for later usage in html element
+			galleries[i].id = `element_id_${gal_data.element_id}`;
 		}
 	};
+
+	var _add_conent_generic = function(src, gallery_id, type, description, width, height) {
+		_init_iteration_data(gallery_id);
+		_push_iteration_data(
+			gallery_id,
+			type,
+			src,
+			description,
+			width,
+			height
+		);
+
+		//return gallery data to open it again
+		return {
+			gallery_id: gallery_id, 
+			element_id: _page_object_data[gallery_id].length-1
+		};
+};
+
+	//get unique identifier string and check if gallery already exists
+	var _init_iteration_data = function(gid) {
+		if (_page_object_data[gid] === undefined)
+			_page_object_data[gid] = []; //add empty array
+	};
+
+	//gather data for new element and push into array
+	var _push_iteration_data = function(gid, type, src, desc, width, height) {
+		_page_object_data[gid].push({
+			type: type,
+			src: src,
+			desc: desc || '',
+			width: width || -1, //-1 for auto-width
+			height: height || -1 //-1 for auto-height
+		});
+	};
+
 
 	var _showGallery = function(event) {
 		_current_gid = event.path[1].getAttribute('gid');					//gallery id
@@ -171,6 +245,9 @@ var simpleBox = (function() {
 	};
 
 	var _closeGallery = function() {
+		if (!_currently_open)
+			return;
+
 		_currently_open = false;
 
 		document.removeEventListener('mousemove', _mouseMoveEvent);
@@ -263,10 +340,6 @@ var simpleBox = (function() {
 			var window_height = window.innerHeight;
 		else //define custom size
 			var window_height = _page_object_data[_current_gid][_current_aid].height + 2*_settings.offset;
-			
-		console.log(_page_object_data[_current_gid][_current_aid].width);
-		console.log(window_width);
-		console.log(window_height);
 
 		if (_page_object_data[_current_gid][_current_aid].type == 'image') {
 			let image = document.getElementById(IDs.IMAGE);
