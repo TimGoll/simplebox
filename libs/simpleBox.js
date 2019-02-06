@@ -11,6 +11,7 @@ var simpleBox = (function() {
 		BACKGROUND         : "simplebox_background",
 		IMAGE              : "simplebox_image",
 		IFRAME             : "simplebox_iframe",
+		HTML               : "simplebox_html",
 		CONTENT_WRAP       : "simplebox_content_wrapper",
 		CONTET_LOADING     : "simplebox_content_loading",
 		FOOTERSHADOW       : "simplebox_footer_shadow",
@@ -220,28 +221,39 @@ var simpleBox = (function() {
 			var content = document.getElementById(IDs.IMAGE);
 		else if (_page_object_data[_current_gid][_current_aid].type == 'iframe')
 			var content = document.getElementById(IDs.IFRAME);
-			
-		content.onload = function() {
-			_changeContentMode();
-			_setNavAreas();
+		else if (_page_object_data[_current_gid][_current_aid].type == 'html')
+			var content = document.getElementById(IDs.HTML);
 
-			//enable visibility of image
-			document.getElementById(IDs.CONTENT_LOADING).remove();
-			content.style.opacity = "1.0";
 
-			//set description if not empty string
-			if (_page_object_data[_current_gid][_current_aid].desc != '')
-				document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _page_object_data[_current_gid][_current_aid].desc;
-
-			//enable nav elements
-			_nav_prev_image.style = "opacity: 1.0;";
-			_nav_next_image.style = "opacity: 1.0;";
-		};
+		if (_page_object_data[_current_gid][_current_aid].type == 'html') {
+			_openGallery_onload(content);	
+		} else {
+			content.onload = function() {
+				_openGallery_onload(content);
+			};
+		}
 
 		if (_settings.background.blur.enabled != false) {
 			document.getElementById(_settings.background.blur.content_id).style.filter = 'blur(15px)';
 			document.getElementById(_settings.background.blur.content_id).style.transform = 'scale(1.01)';
 		}
+	};
+
+	var _openGallery_onload = function(content) {
+		_changeContentMode();
+		_setNavAreas();
+
+		//enable visibility of image
+		document.getElementById(IDs.CONTENT_LOADING).remove();
+		content.style.opacity = "1.0";
+
+		//set description if not empty string
+		if (_page_object_data[_current_gid][_current_aid].desc != '')
+			document.getElementById(IDs.FOOTER_DESCRIPTION).innerHTML = _page_object_data[_current_gid][_current_aid].desc;
+
+		//enable nav elements
+		_nav_prev_image.style = "opacity: 1.0;";
+		_nav_next_image.style = "opacity: 1.0;";
 	};
 
 	var _closeGallery = function() {
@@ -279,6 +291,10 @@ var simpleBox = (function() {
 		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
 			let iframe = _createElement('iframe', IDs.IFRAME, '', 'opacity: 0.0;', document.getElementById(IDs.CONTENT_WRAP));
 			iframe.src = path;
+		}  else
+		if (_page_object_data[_current_gid][_current_aid].type == 'html') {
+			let html = _createElement('div', IDs.HTML, '', 'opacity: 0.0;', document.getElementById(IDs.CONTENT_WRAP));
+			html.innerHTML = path;
 		}
 	};
 
@@ -375,6 +391,14 @@ var simpleBox = (function() {
 			iframe.style['height'] = (window_height - 2 * _settings.offset) + "px";
 			iframe.style['width']  = (window_width - 2 * _settings.offset) + "px";
 			iframe.style['border'] = "none";
+		}  else
+		if (_page_object_data[_current_gid][_current_aid].type == 'html') {
+			content_wrap.className = '';
+
+			content_wrap.style['height']      = (window_height - 2 * _settings.offset) + "px";
+			content_wrap.style['width']       = (window_width - 2 * _settings.offset) + "px";
+			content_wrap.style['margin-top']  = ((window.innerHeight - window_height) / 2 + _settings.offset) + "px";
+			content_wrap.style['margin-left'] = ((window.innerWidth - window_width) / 2 + _settings.offset) + "px"; + "px";
 		}
 
 		
@@ -389,11 +413,11 @@ var simpleBox = (function() {
 
 			var c_width	= window.innerWidth;
 		} else
-		if (_page_object_data[_current_gid][_current_aid].type == 'iframe') {
-			let iframe = document.getElementById(IDs.IFRAME);
+		if (_page_object_data[_current_gid][_current_aid].type == 'iframe' || _page_object_data[_current_gid][_current_aid].type == 'html') {
+			let content_wrap = document.getElementById(IDs.CONTENT_WRAP);
 
-			var height = parseInt(iframe.style.height);
-			var width  = parseInt(iframe.style.width);
+			var height = parseInt(content_wrap.style.height);
+			var width  = parseInt(content_wrap.style.width);
 
 			var c_width	= window.innerWidth;
 		}

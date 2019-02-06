@@ -68,7 +68,6 @@ Additionally there are width and height tags. They defined the max width and hei
 The class `simplebox_imageLink` is just a small helper for you which adds a pointer cursor while hovering over the preview icon. There is no need on using this.
 
 ## TODO
-- add `simpleBox="html"`,
 - close if clicked on description if lower element is background
 - close view button
-- open images or popups in general via javascript
+- split html into "text" and "html", text has a white background and only displays the text, html must be full on designed
