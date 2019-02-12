@@ -69,7 +69,7 @@ var simpleBox = (function() {
 				else
 					console.log(`[${_lib_name}] background ID set to ${background.blur.content_id}.`);
 			}
-			
+
 			// iterate over DOM elements to find suitable galleries
 			_set_up_iteration_data('image');
 			_set_up_iteration_data('iframe');
@@ -127,8 +127,38 @@ var simpleBox = (function() {
 				height
 			);
 		},
-		addInlineHtml : function() {
+		addInlineHtml : function({inline, gallery_id, description, width, height} = {}) {
+			if (inline == undefined) {
+				console.error(`[${_lib_name}] You must at least define inline source code to init a new gallery`);
+				return;
+			}
 
+			return _add_conent_generic(
+				inline,
+				gallery_id || 'default_gallery_html',
+				'html',
+				description,
+				width,
+				height
+			);
+		},
+		addDomElement : function({element, gallery_id, description, width, height} = {}) {
+			if (element == undefined) {
+				console.error(`[${_lib_name}] You must at least define a DOM element to init a new gallery`);
+				return;
+			}
+
+			return_element = _add_conent_generic(
+				'',
+				gallery_id || 'default_gallery_html',
+				'html',
+				description,
+				width,
+				height
+			);
+			//add element
+			_page_object_data[gallery_data.gallery_id][gallery_data.element_id].domElement = element;
+			return return_element;
 		},
 		displayContent : function(gallery_data) {
 			_current_gid = gallery_data.gallery_id;
@@ -153,7 +183,7 @@ var simpleBox = (function() {
 				parseInt(galleries[i].getAttribute('width')),
 				parseInt(galleries[i].getAttribute('height'))
 			);
-			
+
 			//store automatic ID for later usage in html element
 			galleries[i].id = `element_id_${gal_data.element_id}`;
 		}
@@ -172,7 +202,7 @@ var simpleBox = (function() {
 
 		//return gallery data to open it again
 		return {
-			gallery_id: gallery_id, 
+			gallery_id: gallery_id,
 			element_id: _page_object_data[gallery_id].length-1
 		};
 };
@@ -207,10 +237,10 @@ var simpleBox = (function() {
 
 		if (overlayShownOnOpen === undefined)
 			overlayShownOnOpen = true;
-			
+
 		if (overlayShownOnOpen)
 			_fade_out_timeout = setTimeout(_hideElements, 2500);
-		
+
 		_displayFrame(
 			_page_object_data[_current_gid][_current_aid].src,
 			overlayShownOnOpen
@@ -226,7 +256,7 @@ var simpleBox = (function() {
 
 
 		if (_page_object_data[_current_gid][_current_aid].type == 'html') {
-			_openGallery_onload(content);	
+			_openGallery_onload(content);
 		} else {
 			content.onload = function() {
 				_openGallery_onload(content);
@@ -283,7 +313,7 @@ var simpleBox = (function() {
 
 		_createBox(nav_prev, nav_next, footer_desc, overlayShownOnOpen);
 		document.body.style.overflow = 'hidden';
-		
+
 		if (_page_object_data[_current_gid][_current_aid].type == 'image') {
 			let image = _createElement('img', IDs.IMAGE, '', 'opacity: 0.0;', document.getElementById(IDs.CONTENT_WRAP));
 			image.src = path;
@@ -294,7 +324,13 @@ var simpleBox = (function() {
 		}  else
 		if (_page_object_data[_current_gid][_current_aid].type == 'html') {
 			let html = _createElement('div', IDs.HTML, '', 'opacity: 0.0;', document.getElementById(IDs.CONTENT_WRAP));
-			html.innerHTML = path;
+
+			// check if element is given
+			if (_page_object_data[_current_gid][_current_aid].domElement != undefined) {
+				html.appendChild(_page_object_data[_current_gid][_current_aid].domElement);
+			} else {
+				html.innerHTML = path;
+			}
 		}
 	};
 
@@ -348,7 +384,7 @@ var simpleBox = (function() {
 		else //define custom size
 			var window_width = _page_object_data[_current_gid][_current_aid].width + 2*_settings.offset;
 
-			
+
 		//set max height of box
 		if (_page_object_data[_current_gid][_current_aid].height == -1) //default auto sizing
 			var window_height = window.innerHeight;
@@ -363,7 +399,7 @@ var simpleBox = (function() {
 			if (window_width / window_height <= image.width / image.height) {
 				content_wrap.className = 'simplebox_image_landscape';
 				image.className        = 'simplebox_image_landscape';
-	
+
 				content_wrap.style['width']       = (window_width - 2 * _settings.offset) + "px";
 				content_wrap.style['height']      = ((window_width - 2 * _settings.offset) / image.width * image.height) + "px";
 				content_wrap.style['margin-left'] = ((window.innerWidth - window_width) / 2 + _settings.offset) + "px";
@@ -371,7 +407,7 @@ var simpleBox = (function() {
 			} else {
 				content_wrap.className = 'simplebox_image_portrait';
 				image.className        = 'simplebox_image_portrait';
-	
+
 				content_wrap.style['height']      = (window_height - 2 * _settings.offset) + "px";
 				content_wrap.style['width']       = ((window_height - 2 * _settings.offset) / image.height * image.width) + "px";
 				content_wrap.style['margin-top']  = ((window.innerHeight - window_height) / 2 + _settings.offset) + "px";
@@ -401,7 +437,7 @@ var simpleBox = (function() {
 			content_wrap.style['margin-left'] = ((window.innerWidth - window_width) / 2 + _settings.offset) + "px"; + "px";
 		}
 
-		
+
 	};
 
 	var _setNavAreas = function() {
@@ -566,7 +602,7 @@ var simpleBox = (function() {
 			[
 				...
 			]
-			
+
 		}
 	*/
 
