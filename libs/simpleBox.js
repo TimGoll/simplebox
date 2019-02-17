@@ -157,7 +157,7 @@ var simpleBox = (function() {
 				height
 			);
 			//add element
-			_page_object_data[gallery_data.gallery_id][gallery_data.element_id].domElement = element;
+			_page_object_data[return_element.gallery_id][return_element.element_id].domElement = element;
 			return return_element;
 		},
 		displayContent : function(gallery_data) {
